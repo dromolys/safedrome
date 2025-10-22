@@ -1,3 +1,5 @@
+import React from 'react'
+
 function Popup({ onClose, setActiveComponent }) {
   const handleAction = (action) => {
     setActiveComponent(action)
