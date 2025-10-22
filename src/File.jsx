@@ -32,7 +32,7 @@ function File() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100" style={{ minHeight: '100vh' }}>
       <Sidebar 
         activeComponent={activeComponent}
         setActiveComponent={setActiveComponent}

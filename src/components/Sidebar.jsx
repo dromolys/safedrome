@@ -1,3 +1,5 @@
+import React from 'react'
+
 function Sidebar({ activeComponent, setActiveComponent, setShowPopup }) {
   const menuItems = [
     { id: 'home', label: 'Home', icon: '🏠' },
