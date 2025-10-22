@@ -239,7 +239,7 @@ function Subscription() {
                           {/* Credit Packages */}
                           <div className="px-6 pt-2">
                             <h4 className="font-semibold text-gray-900 mb-3">Recommended Packages</h4>
-                          </div>
+              </div>
               
                           <div className="space-y-3 px-6 pt-0 pb-6">
                             {plan.creditPackages.map((pkg, index) => (
@@ -332,24 +332,76 @@ function Subscription() {
                               <div className="space-y-3">
                                 <input
                                   type="number"
+                                  step={calculatorMode === 'credits' ? '1' : '0.01'}
+                                  min={calculatorMode === 'credits' ? '1' : '0.01'}
                                   placeholder={calculatorMode === 'credits' ? 'Enter credits' : 'Enter amount ($)'}
                                   value={calculatorValue}
-                                  onChange={(e) => setCalculatorValue(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    // Prevent minus, plus, 'e', 'E'
+                                    if (e.key === '-' || e.key === '+' || e.key === 'e' || e.key === 'E') {
+                                      e.preventDefault()
+                                    }
+                                    // Prevent decimal point in credits mode
+                                    if (calculatorMode === 'credits' && (e.key === '.' || e.key === ',')) {
+                                      e.preventDefault()
+                                    }
+                                  }}
+                                  onChange={(e) => {
+                                    let value = e.target.value
+                                    
+                                    // Remove leading zeros
+                                    if (value.startsWith('0') && value.length > 1 && value[1] !== '.') {
+                                      value = value.replace(/^0+/, '')
+                                    }
+                                    
+                                    // Only accept if greater than 0 or empty
+                                    if (value === '' || parseFloat(value) > 0) {
+                                      setCalculatorValue(value)
+                                    }
+                                  }}
                                   className="w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:ring-2 text-lg"
                                   style={{ borderColor: 'rgba(59, 130, 246, 0.3)' }}
                                 />
                                 
-                                {calculatorValue && (
-                                  <div className="p-4 rounded-lg" style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%)', border: '2px solid #3B82F6' }}>
-                                    <p className="text-sm text-gray-600 mb-2">
-                                      {calculatorMode === 'credits' ? 'Estimated Cost:' : 'Estimated Credits:'}
-                                    </p>
-                                    <p className="text-3xl font-bold" style={{ color: '#3B82F6' }}>
-                                      {calculatorMode === 'credits'
-                                        ? `$${calculateCredits(plan.creditPackages, calculatorValue, 'credits')}`
-                                        : `${calculateCredits(plan.creditPackages, calculatorValue, 'money')} credits`
-                                      }
-                                    </p>
+                                {calculatorValue && parseFloat(calculatorValue) > 0 && (
+                                  <div className="space-y-3">
+                                    <div className="p-4 rounded-lg" style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%)', border: '2px solid #3B82F6' }}>
+                                      <p className="text-sm text-gray-600 mb-2">
+                                        {calculatorMode === 'credits' ? 'Estimated Cost:' : 'Estimated Credits:'}
+                                      </p>
+                                      <p className="text-3xl font-bold" style={{ color: '#3B82F6' }}>
+                                        {calculatorMode === 'credits'
+                                          ? `$${calculateCredits(plan.creditPackages, Math.floor(calculatorValue), 'credits')}`
+                                          : `${Math.floor(calculateCredits(plan.creditPackages, calculatorValue, 'money'))} credits`
+                                        }
+                                      </p>
+                                    </div>
+                                    <button
+                                      onClick={() => {
+                                        const credits = Math.floor(
+                                          calculatorMode === 'credits' 
+                                            ? calculatorValue
+                                            : calculateCredits(plan.creditPackages, calculatorValue, 'money')
+                                        )
+                                        const price = calculatorMode === 'credits'
+                                          ? `$${calculateCredits(plan.creditPackages, Math.floor(calculatorValue), 'credits')}`
+                                          : `$${calculatorValue}`
+                                        handleBuyCredits(plan.name, credits, price)
+                                      }}
+                                      className="w-full py-3 px-6 rounded-lg font-bold transition-all duration-200 hover:scale-105"
+                                      style={{
+                                        background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                                        color: '#FFFFFF',
+                                        border: 'none',
+                                        boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+                                      }}
+                                    >
+                                      Buy {Math.floor(
+                                        calculatorMode === 'credits' 
+                                          ? calculatorValue
+                                          : calculateCredits(plan.creditPackages, calculatorValue, 'money')
+                                      )} Credits Now
+                                    </button>
                                   </div>
                                 )}
                               </div>
