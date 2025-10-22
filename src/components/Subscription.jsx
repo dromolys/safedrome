@@ -80,15 +80,28 @@ function Subscription() {
   ]
 
   const handlePlanClick = (planId) => {
+    // Switch to the selected plan
     setCurrentPlan(planId)
-    console.log(`Purchasing plan: ${planId}`)
+    console.log(`Switched to plan: ${planId}`)
+  }
+
+  const handleSubscribe = (e, planId) => {
+    e.stopPropagation()
+    
+    // Initiate buying procedure
+    console.log(`Initiating purchase for: ${planId}`)
+    alert(`Proceeding to buy ${planId.charAt(0).toUpperCase() + planId.slice(1)} plan...`)
+    
+    // TODO: Add your buying/checkout logic here
+    // After successful payment, switch to the plan:
+    // setCurrentPlan(planId)
   }
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
       {/* Header */}
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-gray-900">BUY MORE CREDITS, SAVE MONEY</h1>
+        <h1 className="text-4xl font-bold text-gray-900">Choose Your Plan</h1>
       </div>
 
       {/* Pricing Cards Grid */}
@@ -113,7 +126,17 @@ function Subscription() {
                       : '1px solid rgba(0, 0, 0, 0.08)'
                 }}
               >
-                {plan.popular && (
+                {isCurrentPlan ? (
+                  <div 
+                    className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full"
+                    style={{
+                      backgroundColor: '#10B981',
+                      boxShadow: '0 0 20px rgba(16, 185, 129, 0.4)',
+                    }}
+                  >
+                    <span className="text-sm font-semibold text-white">✓ Current Plan</span>
+                  </div>
+                ) : plan.popular ? (
                   <div 
                     className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full"
                     style={{
@@ -123,19 +146,7 @@ function Subscription() {
                   >
                     <span className="text-sm font-semibold text-white">Most Popular</span>
                   </div>
-                )}
-
-                {isCurrentPlan && (
-                  <div 
-                    className="absolute -top-4 right-4 px-4 py-1 rounded-full"
-                    style={{
-                      backgroundColor: '#10B981',
-                      boxShadow: '0 0 20px rgba(16, 185, 129, 0.4)',
-                    }}
-                  >
-                    <span className="text-sm font-semibold text-white">✓ Current Plan</span>
-                  </div>
-                )}
+                ) : null}
                 
                 <div className="space-y-6 flex-grow flex flex-col">
                   <div>
@@ -166,81 +177,94 @@ function Subscription() {
                     ))}
                   </div>
 
-                  <div className="space-y-3 mt-auto">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <button
-                          onClick={(e) => e.stopPropagation()}
-                          className="w-full py-3 px-6 rounded-xl border-2 transition-all duration-200 inline-flex items-center justify-center gap-2 font-semibold"
-                          style={
-                            isCurrentPlan
-                              ? {
-                                  background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-                                  color: '#FFFFFF',
-                                  border: 'none',
-                                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
-                                }
-                              : {
-                                  borderColor: 'rgba(59, 130, 246, 0.3)',
-                                  color: '#3B82F6',
-                                  backgroundColor: 'transparent'
-                                }
-                          }
-                          onMouseEnter={(e) => {
-                            if (!isCurrentPlan) {
-                              e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.05)'
-                            }
+                  <div className="mt-auto space-y-3">
+                    {isCurrentPlan ? (
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <button
+                            className="w-full py-3 px-6 rounded-xl transition-all duration-200 inline-flex items-center justify-center gap-2 font-semibold hover:scale-105"
+                            style={{
+                              background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                              color: '#FFFFFF',
+                              border: 'none',
+                              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+                            }}
+                          >
+                            <Gift className="w-4 h-4" />
+                            Earn Credits
+                          </button>
+                        </DialogTrigger>
+                        <DialogContent 
+                          className="border-0"
+                          style={{ 
+                            backgroundColor: '#FFFFFF',
+                            boxShadow: '0 0 40px rgba(59, 130, 246, 0.15)',
+                            border: '1px solid rgba(0, 0, 0, 0.1)'
                           }}
-                          onMouseLeave={(e) => {
-                            if (!isCurrentPlan) {
-                              e.currentTarget.style.backgroundColor = 'transparent'
-                            }
+                        >
+                          <DialogHeader>
+                            <DialogTitle className="text-gray-900">Earn Free Credits - {plan.name} Plan</DialogTitle>
+                            <DialogDescription className="text-gray-600">
+                              Complete tasks to earn credits and enhance your {plan.name.toLowerCase()} plan
+                            </DialogDescription>
+                          </DialogHeader>
+                          
+                          <div className="space-y-4 p-6 pt-2">
+                            {plan.earnCreditsOptions.map((option, index) => (
+                              <div 
+                                key={index}
+                                className="p-4 rounded-lg border transition-all duration-200 hover:border-blue-500/50 cursor-pointer"
+                                style={{ 
+                                  backgroundColor: '#F8FAFC',
+                                  borderColor: 'rgba(0, 0, 0, 0.1)'
+                                }}
+                              >
+                                <div className="flex items-center justify-between mb-2">
+                                  <h4 className="font-semibold text-gray-900">{option.title}</h4>
+                                  <span 
+                                    className="font-bold"
+                                    style={{ color: '#3B82F6' }}
+                                  >
+                                    +{option.credits} credits
+                                  </span>
+                                </div>
+                                <p className="text-gray-600 text-sm">{option.description}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    ) : (
+                      <>
+                        {plan.id !== 'basic' && (
+                          <button
+                            onClick={(e) => handleSubscribe(e, plan.id)}
+                            className="w-full py-3 px-6 rounded-xl transition-all duration-200 inline-flex items-center justify-center gap-2 font-semibold hover:scale-105"
+                            style={{
+                              background: 'linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)',
+                              color: '#FFFFFF',
+                              border: 'none',
+                              boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
+                            }}
+                          >
+                            Subscribe Now
+                          </button>
+                        )}
+                        <button
+                          disabled
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-full py-3 px-6 rounded-xl transition-all duration-200 inline-flex items-center justify-center gap-2 font-semibold cursor-not-allowed opacity-50"
+                          style={{
+                            border: '2px solid rgba(59, 130, 246, 0.3)',
+                            color: '#3B82F6',
+                            backgroundColor: 'transparent'
                           }}
                         >
                           <Gift className="w-4 h-4" />
                           Earn Credits
                         </button>
-                      </DialogTrigger>
-                      <DialogContent 
-                        className="border-0"
-                        style={{ 
-                          backgroundColor: '#FFFFFF',
-                          boxShadow: '0 0 40px rgba(59, 130, 246, 0.15)',
-                          border: '1px solid rgba(0, 0, 0, 0.1)'
-                        }}
-                      >
-                        <DialogHeader>
-                          <DialogTitle className="text-gray-900">Earn Free Credits - {plan.name} Plan</DialogTitle>
-                          <DialogDescription className="text-gray-600">
-                            Complete tasks to earn credits and enhance your {plan.name.toLowerCase()} plan
-                          </DialogDescription>
-                        </DialogHeader>
-                        
-                        <div className="space-y-4 p-6 pt-2">
-                          {plan.earnCreditsOptions.map((option, index) => (
-                            <div 
-                              key={index}
-                              className="p-4 rounded-lg border transition-all duration-200 hover:border-blue-500/50 cursor-pointer"
-                              style={{ 
-                                backgroundColor: '#F8FAFC',
-                                borderColor: 'rgba(0, 0, 0, 0.1)'
-                              }}
-                            >
-                              <div className="flex items-center justify-between mb-2">
-                                <h4 className="font-semibold text-gray-900">{option.title}</h4>
-                                <span 
-                                  className="font-bold"
-                                  style={{ color: '#3B82F6' }}
-                                >
-                                  +{option.credits} credits
-                                </span>
-                              </div>
-                              <p className="text-gray-600 text-sm">{option.description}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

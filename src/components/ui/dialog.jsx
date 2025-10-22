@@ -1,67 +1,83 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState, cloneElement, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 const DialogContext = createContext()
 
-export function Dialog({ children, open, onOpenChange }) {
+export function Dialog({ children }) {
   const [isOpen, setIsOpen] = useState(false)
-  
-  const actualOpen = open !== undefined ? open : isOpen
-  const actualOnOpenChange = onOpenChange || setIsOpen
 
   return (
-    <DialogContext.Provider value={{ open: actualOpen, onOpenChange: actualOnOpenChange }}>
+    <DialogContext.Provider value={{ isOpen, setIsOpen }}>
       {children}
     </DialogContext.Provider>
   )
 }
 
 export function DialogTrigger({ children, asChild }) {
-  const { onOpenChange } = useContext(DialogContext)
+  const { setIsOpen } = useContext(DialogContext)
+  
+  const handleClick = (e) => {
+    e.stopPropagation()
+    setIsOpen(true)
+  }
   
   if (asChild) {
-    const child = children
-    return (
-      <div onClick={() => onOpenChange(true)}>
-        {child}
-      </div>
-    )
+    return cloneElement(children, {
+      onClick: handleClick
+    })
   }
   
   return (
-    <button onClick={() => onOpenChange(true)}>
+    <button onClick={handleClick}>
       {children}
     </button>
   )
 }
 
 export function DialogContent({ children, className = '', style = {} }) {
-  const { open, onOpenChange } = useContext(DialogContext)
+  const { isOpen, setIsOpen } = useContext(DialogContext)
   
-  if (!open) return null
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [isOpen])
   
-  return (
+  if (!isOpen) return null
+  
+  return createPortal(
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      onClick={() => onOpenChange(false)}
+      className="fixed inset-0 flex items-center justify-center p-4"
+      style={{ zIndex: 9999 }}
+      onClick={() => setIsOpen(false)}
     >
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/50" />
+      <div 
+        className="fixed inset-0 bg-black transition-opacity"
+        style={{ opacity: 0.5 }}
+      />
       
       {/* Dialog */}
       <div 
         className={`relative bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto ${className}`}
-        style={style}
+        style={{ ...style, zIndex: 10000 }}
         onClick={(e) => e.stopPropagation()}
       >
         <button
-          onClick={() => onOpenChange(false)}
-          className="absolute right-4 top-4 rounded-sm opacity-70 hover:opacity-100 transition-opacity"
+          onClick={() => setIsOpen(false)}
+          className="absolute right-4 top-4 rounded-sm opacity-70 hover:opacity-100 transition-opacity z-10"
         >
           <span className="text-2xl font-light text-gray-500 hover:text-gray-700">×</span>
         </button>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 
